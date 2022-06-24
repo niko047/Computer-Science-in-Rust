@@ -1,6 +1,16 @@
 use std::cmp::{max, min};
+use std::ops::Range;
 
 fn main() {
+    let mut ndarr = BiGraph::new(4);
+    println!("{:?}", &ndarr);
+    ndarr.add_connection(0,1);
+    ndarr.add_connection(1,2);
+    ndarr.add_connection(2,3);
+    ndarr.add_connection(0,3);
+    println!("{:?}", &ndarr);
+    ndarr.breadth_first_search(0,2);
+
 }
 
 
@@ -224,6 +234,107 @@ where T : PartialOrd + Copy {
         };
     }
 }
+
+/* 2D Array
+*/
+#[derive(Debug)]
+struct Array2D {
+    values:Vec<Vec<bool>>,
+    capacity:usize,
+}
+
+impl Array2D {
+    pub fn new(capacity: usize) -> Self {
+        let mut outer = Vec::with_capacity(capacity);
+        for i in 0..capacity {
+            outer.push(Vec::with_capacity(capacity));
+        };
+        let mut ndarr = Array2D {
+            values: outer as Vec<Vec<bool>>,
+            capacity,
+            };
+        ndarr.zeros();
+        ndarr
+        }
+
+    fn zeros(&mut self) {
+        for i in 0..self.capacity {
+            for _ in 0..self.capacity {
+                self.values[i].push(false);
+            };
+        };
+    }
+}
+
+
+/* Graph, definition:
+A graph data structure consists of a finite (and possibly mutable) set of vertices (also called nodes or points),
+together with a set of unordered pairs of these vertices for an undirected graph or a set of ordered pairs for a directed graph.
+These pairs are known as edges (also called links or lines), and for a directed graph are also known as edges but also sometimes arrows or arcs.
+The vertices may be part of the graph structure, or may be external entities represented by integer indices or references.
+*/
+#[derive(Debug)]
+struct BiGraph (Array2D);
+
+impl BiGraph {
+    fn new(capacity: usize) -> Self {
+        BiGraph ( Array2D::new( capacity ) )
+    }
+
+    fn add_connection(&mut self, node1: usize, node2: usize) {
+        if node1 < 0 || node2 < 0 {
+            panic!("Error, node indexes cannot be smaller than 0")
+        } else if node1 >= self.0.capacity || node2 > self.0.capacity {
+            panic!("Error, node indexes cannot be bigger than number of nodes inside the graph")
+        }
+
+        self.0.values[node1][node2] = true;
+        self.0.values[node2][node1] = true;
+    }
+
+    fn remove_connection(&mut self, node1:usize, node2:usize) {
+        if node1 < 0 || node2 < 0 {
+            panic!("Error, node indexes cannot be smaller than 0")
+        } else if node1 >= self.0.capacity || node2 > self.0.capacity {
+            panic!("Error, node indexes cannot be bigger than number of nodes inside the graph")
+        }
+
+        self.0.values[node1][node2] = false;
+        self.0.values[node2][node1] = false;
+    }
+
+    fn breadth_first_search(&self, start_node: usize, end_node: usize) -> usize {
+        let mut adjacent_nodes : Vec<usize> = Vec::new();
+        adjacent_nodes.push(start_node);
+        loop {
+            // Get all the current adjacent node
+            for (i,v) in self.0.values[adjacent_nodes[0]].iter().enumerate() {
+                // If the current node has a connection to the other node, then add the index to the array
+                if *v == true && i != start_node {
+                    if i == end_node {
+                        println!("Found!");
+                        return 0;
+                    }
+                    adjacent_nodes.push(i);
+                };
+                println!("{:?}", &adjacent_nodes);
+            };
+            adjacent_nodes.remove(0);
+            let start_node = adjacent_nodes[0];
+        }
+    }
+}
+
+
+
+/* Breadth-First Search (BFS)
+Breadth–first search (BFS) is an algorithm for traversing or searching tree or graph data structures.
+It starts at the tree root (or some arbitrary node of a graph, sometimes referred to as a ‘search key’)
+and explores the neighbor nodes first before moving to the next-level neighbors.
+*/
+
+
+
 
 
 #[cfg(test)]
